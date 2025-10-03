@@ -21,34 +21,23 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # Install Android SDK + required packages
-      - name: Install Android SDK cmdline tools
-        uses: android-actions/setup-android@v3
-        with:
-          packages: |
-            platform-tools
-            platforms;android-35
-            build-tools;35.0.0
-
-      - name: Accept SDK licenses
-        run: yes | sdkmanager --licenses
-
-      # ---- OPTION A: use Gradle WRAPPER if your repo has ./gradlew ----
-      # - name: Make gradlew executable
-      #   run: chmod +x ./gradlew
-      # - name: Build with Gradle wrapper
-      #   run: ./gradlew assembleDebug
-
-      # ---- OPTION B: install Gradle and run without wrapper (SAFE DEFAULT) ----
-      - name: Install Gradle 8.7
+      # Install Android SDK manually (cmdline-tools + required packages)
+      - name: Install Android SDK
         run: |
-          curl -s "https://get.sdkman.io" | bash
-          source "$HOME/.sdkman/bin/sdkman-init.sh"
-          sdk install gradle 8.7
-          echo "$HOME/.sdkman/candidates/gradle/current/bin" >> $GITHUB_PATH
+          sudo mkdir -p /usr/local/lib/android/sdk/cmdline-tools
+          curl -fo sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          sudo unzip -q sdk.zip -d /usr/local/lib/android/sdk/cmdline-tools
+          sudo mv /usr/local/lib/android/sdk/cmdline-tools/cmdline-tools /usr/local/lib/android/sdk/cmdline-tools/latest
+          export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
+          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
+          yes | sdkmanager --licenses
+          sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Grant execute permission for Gradle wrapper
+        run: chmod +x ./gradlew
 
       - name: Build Debug APK
-        run: gradle assembleDebug
+        run: ./gradlew assembleDebug
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
