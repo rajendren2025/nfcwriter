@@ -1,0 +1,10 @@
+// Top-level build file
+buildscript {
+  repositories {
+    google()
+    mavenCentral()
+  }
+  dependencies {
+    // Using modern plugin DSL in app/build.gradle
+  }
+}
