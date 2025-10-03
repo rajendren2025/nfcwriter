@@ -21,7 +21,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # Install Android SDK manually (cmdline-tools + required packages)
+      # Install Android SDK commandline tools + required packages
       - name: Install Android SDK
         run: |
           sudo mkdir -p /usr/local/lib/android/sdk/cmdline-tools
@@ -33,12 +33,19 @@ jobs:
           yes | sdkmanager --licenses
           sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Grant execute permission for Gradle wrapper
-        run: chmod +x ./gradlew
+      # Install Gradle (no wrapper in repo)
+      - name: Install Gradle 8.7
+        run: |
+          curl -s https://get.sdkman.io | bash
+          source "$HOME/.sdkman/bin/sdkman-init.sh"
+          sdk install gradle 8.7
+          echo "$HOME/.sdkman/candidates/gradle/current/bin" >> $GITHUB_PATH
 
+      # Build the debug APK
       - name: Build Debug APK
-        run: ./gradlew assembleDebug
+        run: gradle assembleDebug
 
+      # Upload the built APK
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
